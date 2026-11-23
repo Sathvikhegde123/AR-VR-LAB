@@ -3,9 +3,16 @@ import os
 import time
 import threading
 import traceback
+from dotenv import load_dotenv
+
+
+tts_lock = threading.Lock()
+
+load_dotenv()
+
+unity_project_path = os.getenv("UNITY_PROJECT_PATH")
 
 # Prevent overlapping TTS calls
-tts_lock = threading.Lock()
 
 def generate_audio(text, avatar_id=0):
 
@@ -51,8 +58,16 @@ def generate_audio(text, avatar_id=0):
             # ----------------------------- File Naming--------------------
             filename = f"output_{int(time.time() * 1000)}.wav"
 
-            unity_audio_path = r"D:\Unity projects\build1\build\VantageLoginUI_Data\StreamingAssets\audio"
 
+            if not unity_project_path:
+                raise ValueError("UNITY_PROJECT_PATH is not configured")
+
+            unity_audio_path = os.path.join(
+                unity_project_path,
+                "Assets",
+                "StreamingAssets",
+                "audio"
+            )
             #unity_audio_path = r"D:\Unity projects\VantageVR_current\VantageVR\Assets\StreamingAssets\audio"
 
             # Ensure folder exists

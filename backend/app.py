@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, request
 from services.tts_engine import generate_audio
+from db_config import DB_CONFIG
 import mysql.connector
 import random
 import pyttsx3
@@ -9,12 +10,7 @@ app = Flask(__name__)
 
 # ================= DB =================
 def get_connection():
-    return mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="",
-        database="csd056"
-    )
+    return mysql.connector.connect(**DB_CONFIG)
 
 # ================= HOME =================
 @app.route('/')
