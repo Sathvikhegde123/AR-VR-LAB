@@ -65,34 +65,57 @@ public class AuthUIManager : MonoBehaviour
         messageText.color = color;
     }
 
-    string baseURL = "http://localhost/unity_api/";
-
+    string baseURL = "http://127.0.0.1:5000/";
     void Awake()
     {
-        if (GameData.openModePanel)
-        {
-            loginPanel.SetActive(false);
-            signupPanel.SetActive(false);
-            modeselectPanel.SetActive(true);
-            dropDownMenuPanel.SetActive(false);
-            difficultyPanel.SetActive(false);
-            otpPanel.SetActive(false);
-            forgotPasswordPanel.SetActive(false);
-            resetPasswordPanel.SetActive(false);
-            GameData.openModePanel = false;
-        }
-        else
-        {
-            loginPanel.SetActive(true);
-            signupPanel.SetActive(false);
-            dropDownMenuPanel.SetActive(false);
-            difficultyPanel.SetActive(false);
-            modeselectPanel.SetActive(false);
-            otpPanel.SetActive(false);
-            forgotPasswordPanel.SetActive(false);
-            resetPasswordPanel.SetActive(false);
-        }
+        // if (GameData.openModePanel)
+        // {
+        //     loginPanel.SetActive(false);
+        //     signupPanel.SetActive(false);
+        //     modeselectPanel.SetActive(true);
+        //     dropDownMenuPanel.SetActive(false);
+        //     difficultyPanel.SetActive(false);
+        //     otpPanel.SetActive(false);
+        //     forgotPasswordPanel.SetActive(false);
+        //     resetPasswordPanel.SetActive(false);
+        //     GameData.openModePanel = false;
+        // }
+        // else
+        // {
+        //     loginPanel.SetActive(true);
+        //     signupPanel.SetActive(false);
+        //     dropDownMenuPanel.SetActive(false);
+        //     difficultyPanel.SetActive(false);
+        //     modeselectPanel.SetActive(false);
+        //     otpPanel.SetActive(false);
+        //     forgotPasswordPanel.SetActive(false);
+        //     resetPasswordPanel.SetActive(false);
+        // }
+        // passwordHintBG.SetActive(false);
+
+        loginPanel.SetActive(false);
+        signupPanel.SetActive(false);
+        otpPanel.SetActive(false);
+        forgotPasswordPanel.SetActive(false);
+        resetPasswordPanel.SetActive(false);
+
+        // Hide other panels initially
+        dropDownMenuPanel.SetActive(false);
+        difficultyPanel.SetActive(false);
         passwordHintBG.SetActive(false);
+
+        // Show mode selection directly
+        modeselectPanel.SetActive(true);
+
+        // Use guest as the default user
+        if (string.IsNullOrEmpty(GameData.username))
+        {
+            GameData.username = "guest";
+        }
+
+        GameData.openModePanel = false;
+
+        Debug.Log("VantageVR started in guest mode");
     }
     void Start()
     {

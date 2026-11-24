@@ -59,3 +59,12 @@ sysinfo.txt
 
 # Crashlytics generated file
 crashlytics-build.properties
+
+# Python
+*.pyc
+__pycache__/
+.pytest_cache/
+venv/
+
+# Unity generated crash/build data
+/CrashReports/
