@@ -7,6 +7,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 [System.Serializable]
+
 public class Option
 {
     public string text;
@@ -242,6 +243,7 @@ public class InterviewManager : MonoBehaviour
     // ================= SPEAKING =================
     public void StartSpeaking()
     {
+        Debug.Log("START SPEAKING BUTTON CLICKED");
         startAnswerBtn.gameObject.SetActive(true);
         stopAnswerBtn.gameObject.SetActive(true);
 

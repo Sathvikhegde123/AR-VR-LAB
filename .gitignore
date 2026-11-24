@@ -68,3 +68,5 @@ venv/
 
 # Unity generated crash/build data
 /CrashReports/
+
+Assets/StreamingAssets
