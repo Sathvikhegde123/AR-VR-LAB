@@ -26,6 +26,11 @@ public class QuestionList
 {
     public List<Question> questions;
 }
+[System.Serializable]
+public class MCQAnswerList
+{
+    public List<InterviewManager.MCQAnswer> answers;
+}
 
 public class InterviewManager : MonoBehaviour
 {
@@ -60,6 +65,17 @@ public class InterviewManager : MonoBehaviour
     private List<Question> mcqQuestions = new List<Question>();
     private int currentMCQ = 0;
     private int totalMCQScore = 0;
+
+    [System.Serializable]
+    public class MCQAnswer
+    {
+        public string question;
+        public string selected_answer;
+        public string correct_answer;
+        public int score;
+    }
+
+    private List<MCQAnswer> mcqAnswers = new List<MCQAnswer>();
 
     private List<Question> speakingQuestions = new List<Question>();
     private int currentSpeaking = 0;
@@ -134,7 +150,7 @@ public class InterviewManager : MonoBehaviour
         mcqPanel.SetActive(true);
         currentMCQ = 0;
         totalMCQScore = 0;
-
+        mcqAnswers.Clear();
         ShowMCQQuestion();
     }
 
@@ -156,11 +172,14 @@ public class InterviewManager : MonoBehaviour
             int index = i;
             optionButtons[i].GetComponentInChildren<TMP_Text>().text = q.options[i].text;
             optionButtons[i].onClick.RemoveAllListeners();
-            optionButtons[i].onClick.AddListener(() => SelectMCQOption(q.options[index].score));
+            optionButtons[i].onClick.AddListener(() =>
+                SelectMCQOption(q, index)
+            );       
         }
     }
 
-    void SelectMCQOption(int score)
+   
+    void SelectMCQOption(Question q, int selectedIndex)
     {
         // Ignore clicks while TTS is running
         if (isSpeaking)
@@ -169,7 +188,32 @@ public class InterviewManager : MonoBehaviour
             return;
         }
 
-        totalMCQScore += score;
+        Option selectedOption = q.options[selectedIndex];
+
+        // Find the correct answer (highest score)
+        Option correctOption = q.options[0];
+
+        foreach (Option option in q.options)
+        {
+            if (option.score > correctOption.score)
+            {
+                correctOption = option;
+            }
+        }
+
+        MCQAnswer answer = new MCQAnswer
+        {
+            question = q.question,
+            selected_answer = selectedOption.text,
+            correct_answer = correctOption.text,
+            score = selectedOption.score
+        };
+
+        mcqAnswers.Add(answer);
+
+        Debug.Log("MCQ ANSWER COLLECTED: " + JsonUtility.ToJson(answer));
+
+        totalMCQScore += selectedOption.score;
         currentMCQ++;
 
         if (currentMCQ < mcqQuestions.Count)
@@ -179,7 +223,6 @@ public class InterviewManager : MonoBehaviour
         else
         {
             mcqPanel.SetActive(false);
-
 
             if (speakCoroutine != null)
             {
@@ -193,14 +236,22 @@ public class InterviewManager : MonoBehaviour
                     src.Stop();
             }
 
+            // Print all answers when MCQ finishes
+            string answersJson = JsonUtility.ToJson(
+                new MCQAnswerList { answers = mcqAnswers },
+                true
+            );
 
+            Debug.Log("========== ALL MCQ ANSWERS ==========");
+            Debug.Log(answersJson);
+            Debug.Log("====================================");
+
+            StartCoroutine(SubmitMCQAnswers());
             // Show result panel
             resultPanel.SetActive(true);
 
-            // Set score text
             scoreText.text = "Score: " + totalMCQScore + "/40";
 
-            // Set message
             if (totalMCQScore == 40)
                 messageText.text = "Excellent!";
             else if (totalMCQScore >= 30)
@@ -211,6 +262,7 @@ public class InterviewManager : MonoBehaviour
                 messageText.text = "Need to work harder!";
         }
     }
+
     public void RestartFromMCQ()
     {
         totalMCQScore = 0;
@@ -537,6 +589,43 @@ public class InterviewManager : MonoBehaviour
         else
         {
             Debug.LogError("Session save failed: " + req.error);
+        }
+    }
+
+    IEnumerator SubmitMCQAnswers()
+    {
+        MCQAnswerList answerData = new MCQAnswerList
+        {
+            answers = mcqAnswers
+        };
+
+        string jsonData = JsonUtility.ToJson(answerData, true);
+
+        Debug.Log("Sending MCQ answers to Flask:");
+        Debug.Log(jsonData);
+
+        UnityWebRequest req = new UnityWebRequest(
+            baseURL + "/submit_score",
+            "POST"
+        );
+
+        req.uploadHandler = new UploadHandlerRaw(
+            System.Text.Encoding.UTF8.GetBytes(jsonData)
+        );
+
+        req.downloadHandler = new DownloadHandlerBuffer();
+        req.SetRequestHeader("Content-Type", "application/json");
+
+        yield return req.SendWebRequest();
+
+        if (req.result == UnityWebRequest.Result.Success)
+        {
+            Debug.Log("MCQ Flask Response: " + req.downloadHandler.text);
+        }
+        else
+        {
+            Debug.LogError("MCQ Submit Error: " + req.error);
+            Debug.LogError(req.downloadHandler.text);
         }
     }
 

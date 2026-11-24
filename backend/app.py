@@ -177,13 +177,19 @@ def save_session():
         conn.close()
 
 # ================= SCORE =================
+
 @app.route('/submit_score', methods=['POST'])
 def submit_score():
     try:
         data = request.get_json()
+
+        print("\n========== MCQ DATA RECEIVED FROM UNITY ==========")
+        print(data)
+        print("================================================\n")
+
         answers = data.get("answers", [])
 
-        total = sum([a.get("score", 0) for a in answers])
+        total = sum(a.get("score", 0) for a in answers)
         percentage = (total / (len(answers) * 4)) * 100 if answers else 0
 
         return jsonify({
@@ -194,6 +200,7 @@ def submit_score():
     except Exception as e:
         print("SCORE ERROR:", e)
         return jsonify({"error": str(e)}), 500
+
 
 
 # ================= RUN =================
